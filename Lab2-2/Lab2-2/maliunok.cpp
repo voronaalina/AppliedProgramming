@@ -260,7 +260,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     // Натискання клавіші
     case WM_KEYDOWN:
     {
-        if (wParam == VK_ESCAPE)
+        if (wParam == VK_SPACE)
         {
             DestroyWindow(hwnd);
         }
