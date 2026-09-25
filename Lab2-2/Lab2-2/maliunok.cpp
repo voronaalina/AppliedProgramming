@@ -4,7 +4,6 @@
 class FirTree
 {
 public:
-    // X, Y - координати основи стовбура (низ дерева)
     void show(HDC dc, int X, int Y)
     {
 
@@ -15,7 +14,7 @@ public:
         SelectObject(dc, oldBrush);
         DeleteObject(trunkBrush);
 
-        // Три яруси хвої (трикутники, що звужуються догори)
+        // Три яруси для ялинки
         HBRUSH greenBrush = CreateSolidBrush(RGB(0, 100, 0));
         oldBrush = SelectObject(dc, greenBrush);
 
@@ -92,7 +91,7 @@ public:
         SelectObject(dc, oldBrush);
         DeleteObject(brush);
 
-        // Комин
+        // Димохід
         brush = CreateSolidBrush(RGB(105, 105, 105));
         oldBrush = SelectObject(dc, brush);
         Rectangle(dc, X + 120, Y + 15, X + 140, Y + 55);
@@ -111,7 +110,7 @@ private:
         LineTo(dc, x2, y2);
     }
 public:
-    // X, Y - координати основи (низ нижньої кулі)
+    // X, Y - координати основи 
     void show(HDC dc, int X, int Y)
     {
         HBRUSH whiteBrush = CreateSolidBrush(RGB(255, 255, 255));
@@ -133,7 +132,7 @@ public:
         SelectObject(dc, oldBrush);
         DeleteObject(hatBrush);
 
-        // Очі та ґудзики (чорні кружечки)
+        // Очі та ґудзики 
         oldBrush = SelectObject(dc, GetStockObject(BLACK_BRUSH));
         Ellipse(dc, X - 9, Y - 195, X - 3, Y - 189);
         Ellipse(dc, X + 3, Y - 195, X + 9, Y - 189);
@@ -142,7 +141,7 @@ public:
         Ellipse(dc, X - 5, Y - 55, X + 5, Y - 45);
         SelectObject(dc, oldBrush);
 
-        // Ніс-морквина
+        // Ніс
         HBRUSH noseBrush = CreateSolidBrush(RGB(255, 140, 0));
         oldBrush = SelectObject(dc, noseBrush);
         POINT nose[3] =
@@ -155,7 +154,7 @@ public:
         SelectObject(dc, oldBrush);
         DeleteObject(noseBrush);
 
-        // Руки-гілки
+        // Руки
         HPEN branchPen = CreatePen(PS_SOLID, 2, RGB(102, 51, 0));
         HGDIOBJ oldPen = SelectObject(dc, branchPen);
         line(dc, X - 33, Y - 130, X - 70, Y - 150);
