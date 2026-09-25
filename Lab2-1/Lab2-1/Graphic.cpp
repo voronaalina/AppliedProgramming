@@ -1,4 +1,4 @@
-#include <windows.h>
+п»ї#include <windows.h>
 #include <math.h>
 #include <stdio.h>
 
@@ -14,8 +14,8 @@ typedef struct
     wchar_t name[20];
     float x[N];
     float y[N];
-    float xmin, xmax;   // межі аргументу х
-    float ymin, ymax;   // межі функції у 
+    float xmin, xmax;   // РјРµР¶С– Р°СЂРіСѓРјРµРЅС‚Сѓ С…
+    float ymin, ymax;   // РјРµР¶С– С„СѓРЅРєС†С–С— Сѓ 
 } FUNC;
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpszCmdLine, _In_ int nCmdShow)
@@ -24,7 +24,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     ::hInstance = hInstance;
     if (!RegClass(WndProc, szClassName, COLOR_WINDOW))
         return FALSE;
-    hwnd = CreateWindow(szClassName, L"Графік функції y = sqrt(x^2+5)",
+    hwnd = CreateWindow(szClassName, L"Р“СЂР°С„С–Рє С„СѓРЅРєС†С–С— y = sqrt(x^2+5)",
         WS_OVERLAPPEDWINDOW | WS_VISIBLE,
         CW_USEDEFAULT, CW_USEDEFAULT, 700, 500,
         0, 0, hInstance, NULL);
@@ -65,7 +65,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
         wcscpy_s(f.name, 20, L"y = sqrt(x^2+5)");
 
-        // межі аргументу -2<=x<=8
+        // РјРµР¶С– Р°СЂРіСѓРјРµРЅС‚Сѓ -2<=x<=8
         f.xmin = -2.0f;
         f.xmax = 8.0f;
 
@@ -77,7 +77,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             if (f.y[i] > ymaxReal) ymaxReal = f.y[i];
         }
 
-        //нижня і верхня межа
+        //РЅРёР¶РЅСЏ С– РІРµСЂС…РЅСЏ РјРµР¶Р°
         f.ymin = 0.0f;
         f.ymax = ceilf(ymaxReal);
         return 0;
@@ -87,28 +87,28 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hwnd, &ps);
 
-        int x0 = cx / 8;         // лівий крайт
-        int xr = cx - cx / 15;   // правий край
-        int y0 = cy / 10;        // верхній край 
-        int yb = cy - cy / 6;    // нижній край 
+        int x0 = cx / 8;         // Р»С–РІРёР№ РєСЂР°Р№С‚
+        int xr = cx - cx / 15;   // РїСЂР°РІРёР№ РєСЂР°Р№
+        int y0 = cy / 10;        // РІРµСЂС…РЅС–Р№ РєСЂР°Р№ 
+        int yb = cy - cy / 6;    // РЅРёР¶РЅС–Р№ РєСЂР°Р№ 
 
         float dx = (float)(xr - x0) / (f.xmax - f.xmin);
         float dy = (float)(yb - y0) / (f.ymax - f.ymin);
 
-        // Лямбди для перерахунку координат функції в екранні пікселі
+        // Р›СЏРјР±РґРё РґР»СЏ РїРµСЂРµСЂР°С…СѓРЅРєСѓ РєРѕРѕСЂРґРёРЅР°С‚ С„СѓРЅРєС†С–С— РІ РµРєСЂР°РЅРЅС– РїС–РєСЃРµР»С–
         auto SX = [&](float xv) -> int { return x0 + (int)(dx * (xv - f.xmin)); };
         auto SY = [&](float yv) -> int { return yb - (int)(dy * (yv - f.ymin)); };
 
-        // Заголовок 
+        // Р—Р°РіРѕР»РѕРІРѕРє 
         TextOut(hdc, x0 + 4, y0 / 3, f.name, (int)wcslen(f.name));
 
-        // Вісь абсцис (x), розташована на рівні y = 0 
+        // Р’С–СЃСЊ Р°Р±СЃС†РёСЃ (x), СЂРѕР·С‚Р°С€РѕРІР°РЅР° РЅР° СЂС–РІРЅС– y = 0 
         int axisXpos = SY(0.0f);
         MoveToEx(hdc, x0, axisXpos, NULL);
         LineTo(hdc, xr + 10, axisXpos);
         TextOut(hdc, xr + 12, axisXpos - 8, L"x", 1);
 
-        // Вісь ординат (y), розташована на рівні x = 0 
+        // Р’С–СЃСЊ РѕСЂРґРёРЅР°С‚ (y), СЂРѕР·С‚Р°С€РѕРІР°РЅР° РЅР° СЂС–РІРЅС– x = 0 
         int axisYpos = SX(0.0f);
         MoveToEx(hdc, axisYpos, yb, NULL);
         LineTo(hdc, axisYpos, y0 - 10);
@@ -116,7 +116,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
         wchar_t buf[16];
 
-        // Розмітка і підписи осі х 
+        // Р РѕР·РјС–С‚РєР° С– РїС–РґРїРёСЃРё РѕСЃС– С… 
         for (int xv = (int)ceilf(f.xmin); xv <= (int)floorf(f.xmax); xv++)
         {
             int sx = SX((float)xv);
@@ -126,7 +126,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             TextOut(hdc, sx - 4, axisXpos + 6, buf, (int)wcslen(buf));
         }
 
-        // Розмітка і підписи осі у 
+        // Р РѕР·РјС–С‚РєР° С– РїС–РґРїРёСЃРё РѕСЃС– Сѓ 
         for (int yv = (int)ceilf(f.ymin); yv <= (int)floorf(f.ymax); yv++)
         {
             int sy = SY((float)yv);
@@ -136,7 +136,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             TextOut(hdc, axisYpos - 24, sy - 8, buf, (int)wcslen(buf));
         }
 
-        // графік функції
+        // РіСЂР°С„С–Рє С„СѓРЅРєС†С–С—
         HPEN hPen = CreatePen(PS_SOLID, 2, RGB(0, 0, 255));
         HPEN hOldPen = (HPEN)SelectObject(hdc, hPen);
 
