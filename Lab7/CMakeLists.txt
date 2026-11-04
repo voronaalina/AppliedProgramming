@@ -3,3 +3,8 @@ project(Lab7 LANGUAGES CXX)
 
 add_subdirectory(PolyLib)
 add_subdirectory(App)
+
+# Google Test
+find_package(GTest CONFIG REQUIRED)
+enable_testing()
+add_subdirectory(tests)
