@@ -2,43 +2,56 @@
 #include <limits>
 #include "Polynomial.h"
 #include "PolyExceptions.h"
+#include "ScopeLogger.h"
+
+// Рівень 3: тут виникає виняток
+void level3()
+{
+    ScopeLogger logger("level3");
+    std::cout << "Creating polynomial with NaN coefficient...\n";
+    constexpr double nan = std::numeric_limits<double>::quiet_NaN();
+    Polynomial p{ 1.0, nan };
+    std::cout << "This line is never reached\n";
+}
+
+// Рівень 2: перехоплює, виводить діагностику і кидає далі
+void level2()
+{
+    ScopeLogger logger("level2");
+    try
+    {
+        level3();
+    }
+    catch (const InvalidCoefficientException& e)
+    {
+        std::cout << "[LOG] level2 caught: " << e.what()
+            << " (index " << e.index() << ")\n";
+        throw;
+    }
+}
+
+// Рівень 1: просто викликає наступний
+void level1()
+{
+    ScopeLogger logger("level1");
+    level2();
+    std::cout << "This line is never reached\n";
+}
 
 int main()
 {
-    constexpr double nan = std::numeric_limits<double>::quiet_NaN();
-
-    Polynomial a{ 1.0, 2.0, 3.0 };
-    Polynomial b{ 0.0, 1.0 };
-
-    // Звичайна робота
-    Polynomial m = a.multiply(b);
-    std::cout << "a*b coefficients:";
-    for (double c : m.coefficients()) std::cout << ' ' << c;
-    std::cout << "\na(2) = " << a.evaluate(2.0) << '\n';
-
-    // Сценарій: NaN у коефіцієнті
-    try { Polynomial p{ 1.0, nan }; }
-    catch (const InvalidCoefficientException& e)
+    try
     {
-        std::cout << e.what() << " (index " << e.index() << ")\n";
+        level1();
     }
-
-    // Сценарій: порожній набір
-    try { Polynomial p(std::vector<double>{}); }
-    catch (const std::invalid_argument& e)
+    catch (const PolynomialException& e)
     {
-        std::cout << "invalid_argument: " << e.what() << '\n';
+        std::cout << "[MAIN] caught: " << e.what() << '\n';
     }
-
-    // Сценарій: переповнення, стан не змінюється
-    Polynomial x{ 1e200, 1.0 };
-    try { x *= Polynomial{ 1e200, 1.0 }; }
-    catch (const PolynomialOverflowException& e)
+    catch (const std::exception& e)
     {
-        std::cout << e.what() << '\n';
+        std::cout << "[MAIN] std::exception: " << e.what() << '\n';
     }
-    std::cout << "x after failed *=: size " << x.size()
-        << ", x[0] = " << x.coefficient(0) << '\n';
-
+    std::cout << "Program continues normally.\n";
     return 0;
 }

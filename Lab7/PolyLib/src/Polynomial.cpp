@@ -76,6 +76,7 @@ double Polynomial::coefficient(std::size_t index) const
     return coeffs_[index];
 }
 
+// Гарантія: strong
 void Polynomial::setCoefficient(std::size_t index, double value)
 {
     // Усі перевірки до зміни стану.
@@ -84,26 +85,26 @@ void Polynomial::setCoefficient(std::size_t index, double value)
     if (!std::isfinite(value))
         throw InvalidCoefficientException(index, value);
 
-    // Фіксація: присвоєння double не кидає винятків.
     coeffs_[index] = value;
 }
 
+// Гарантія: no-throw (обмін внутрішніх векторів не виділяє пам'ять)
 void Polynomial::swap(Polynomial& other) noexcept
 {
     coeffs_.swap(other.coeffs_);
 }
 
+// Гарантія: strong.
 Polynomial& Polynomial::multiplyAssign(const Polynomial& other)
 {
-    // Результат рахується в окремому об'єкті: тут можливі винятки,
-    // а *this ще не змінено.
+
     Polynomial result = multiply(other);
 
-    // Фіксація: swap не кидає винятків.
     swap(result);
     return *this;
 }
 
+// Гарантія: strong (делегує multiplyAssign).
 Polynomial& Polynomial::operator*=(const Polynomial& other)
 {
     return multiplyAssign(other);
