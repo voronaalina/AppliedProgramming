@@ -1,45 +1,44 @@
 #include <iostream>
-#include "PolyLib.h"
+#include <limits>
+#include "Polynomial.h"
+#include "PolyExceptions.h"
 
-void printPoly(const double* p, int n) {
-    bool first = true;
-    for (int i = 0; i < n; ++i) {
-        if (p[i] == 0) continue;               
-        if (!first) std::cout << " + ";
-        first = false;
-        std::cout << p[i];
-        if (i == 1) std::cout << "*x";
-        if (i > 1)  std::cout << "*x^" << i;
+int main()
+{
+    constexpr double nan = std::numeric_limits<double>::quiet_NaN();
+
+    Polynomial a{ 1.0, 2.0, 3.0 };
+    Polynomial b{ 0.0, 1.0 };
+
+    // «вичайна робота
+    Polynomial m = a.multiply(b);
+    std::cout << "a*b coefficients:";
+    for (double c : m.coefficients()) std::cout << ' ' << c;
+    std::cout << "\na(2) = " << a.evaluate(2.0) << '\n';
+
+    // —ценар≥й: NaN у коеф≥ц≥Їнт≥
+    try { Polynomial p{ 1.0, nan }; }
+    catch (const InvalidCoefficientException& e)
+    {
+        std::cout << e.what() << " (index " << e.index() << ")\n";
     }
-    if (first) std::cout << 0;                
-    std::cout << "\n";
-}
 
-int main() {
-    double a[] = { 1, 2, 3 };    // 1 + 2*x + 3*x^2
-    double b[] = { 0, 1 };       // x
-    double r[10];             
-    int len = 0;
-    double v = 0;
+    // —ценар≥й: порожн≥й наб≥р
+    try { Polynomial p(std::vector<double>{}); }
+    catch (const std::invalid_argument& e)
+    {
+        std::cout << "invalid_argument: " << e.what() << '\n';
+    }
 
-    std::cout << "a(x) = "; printPoly(a, 3);
-    std::cout << "b(x) = "; printPoly(b, 2);
-    std::cout << "\n";
-
-    Poly::Add(a, 3, b, 2, r, 10, &len);
-    std::cout << "a + b = "; printPoly(r, len);      
-
-    Poly::Multiply(a, 3, b, 2, r, 10, &len);
-    std::cout << "a * b = "; printPoly(r, len);      
-
-    Poly::Evaluate(a, 3, 2.0, &v);
-    std::cout << "a(2) = " << v << "\n";           
-
-    Poly::Derivative(a, 3, r, 10, &len);
-    std::cout << "a'(x) = "; printPoly(r, len);      
-
-    Poly::Integral(a, 3, 5.0, r, 10, &len);
-    std::cout << "integral a = "; printPoly(r, len);      
+    // —ценар≥й: переповненн€, стан не зм≥нюЇтьс€
+    Polynomial x{ 1e200, 1.0 };
+    try { x *= Polynomial{ 1e200, 1.0 }; }
+    catch (const PolynomialOverflowException& e)
+    {
+        std::cout << e.what() << '\n';
+    }
+    std::cout << "x after failed *=: size " << x.size()
+        << ", x[0] = " << x.coefficient(0) << '\n';
 
     return 0;
 }
