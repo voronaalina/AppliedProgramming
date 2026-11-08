@@ -173,7 +173,7 @@ TEST(PolynomialInvariants, SwapIsNoThrow)
     SUCCEED();
 }
 
-// ===================== 7. Сильна гарантія =====================
+//  7. Сильна гарантія 
 
 TEST(PolynomialStrongGuarantee, SetCoefficientPreservesStateOnBadIndex)
 {

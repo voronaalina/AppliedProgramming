@@ -4,9 +4,8 @@
 #include <initializer_list>
 #include <vector>
 
-// Многочлен a0 + a1*x + a2*x^2 + ...
-//
-// Інваріанти (виконуються для кожного доступного об'єкта):
+
+// Інваріанти:
 //   1. коефіцієнтів хоча б один;
 //   2. коефіцієнтів не більше kMaxCoefficients;
 //   3. кожен коефіцієнт скінченний (не NaN і не Inf).
@@ -23,13 +22,12 @@ public:
     explicit Polynomial(std::vector<double> coefficients);
     Polynomial(std::initializer_list<double> coefficients);
 
-    // --- спостерігачі ---
+    // спостерігачі 
     std::size_t size() const noexcept;
     std::size_t degree() const noexcept;
     const std::vector<double>& coefficients() const noexcept;
-    double coefficient(std::size_t index) const;        // std::out_of_range
+    double coefficient(std::size_t index) const;        
 
-    // --- зміна стану ---
     // Гарантія: strong (усі перевірки до присвоєння).
     void setCoefficient(std::size_t index, double value);
 
@@ -39,8 +37,7 @@ public:
 
     // Гарантія: no-throw.
     void swap(Polynomial& other) noexcept;
-
-    // --- обчислення (об'єкт не змінюють) ---
+ 
     double evaluate(double x) const;
     Polynomial derivative() const;
     Polynomial integral(double constant = 0.0) const;

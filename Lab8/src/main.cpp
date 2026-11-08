@@ -7,6 +7,10 @@
 #include <sqlite3.h>
 
 #include "Database.h"
+#include "IUserRepository.h"
+#include "PrintDocumentDataAccess.h"
+#include "SQLiteUserRepository.h"
+#include "TestData.h"
 #include "User.h"
 
 int insertUser(
@@ -301,9 +305,325 @@ void runRelationshipDemo()
     }
 }
 
+void runRepositoryDemo()
+{
+    SQLiteUserRepository sqliteRepository("print_queue.db");
+
+    IUserRepository& repository = sqliteRepository;
+
+    // Окремий компонент для залежної сутності PrintDocument
+    PrintDocumentDataAccess documents("print_queue.db");
+
+    std::cout << "\nRepository demonstration\n";
+
+    // 1. CREATE
+    User user{
+        0,
+        "Sherlock Holmes",
+        "bs221b@example.com",
+
+        "Finance"
+    };
+
+    int id = repository.add(user);
+
+    std::cout << "\nCREATE\n";
+    std::cout << "Inserted user ID: " << id << '\n';
+
+    // 2. READ
+    std::cout << "\nREAD\n";
+
+    auto found = repository.findById(id);
+
+    if (found)
+    {
+        std::cout << "ID: " << found->id << '\n';
+        std::cout << "Name: " << found->name << '\n';
+        std::cout << "Email: " << found->email << '\n';
+        std::cout << "Department: " << found->department << '\n';
+    }
+
+    // 3. UPDATE
+    std::cout << "\nUPDATE\n";
+
+    if (found)
+    {
+        found->department = "Accounting";
+
+        bool updated = repository.update(*found);
+
+        std::cout << "Updated: "
+            << std::boolalpha << updated << '\n';
+
+        auto afterUpdate = repository.findById(id);
+
+        if (afterUpdate)
+        {
+            std::cout << "New department: "
+                << afterUpdate->department << '\n';
+        }
+    }
+
+    // 4. READ ALL
+    std::cout << "\nREAD ALL\n";
+
+    auto allUsers = repository.findAll();
+
+    for (const auto& item : allUsers)
+    {
+        std::cout
+            << item.id << " | "
+            << item.name << " | "
+            << item.email << " | "
+            << item.department << '\n';
+    }
+
+    // 5. Документи користувача (окремий компонент)
+    std::cout << "\nPRINT DOCUMENTS\n";
+
+    PrintDocument document{
+        0,
+        id,
+        "Meeting agenda.pdf",
+        "queued",
+        3,
+        2
+    };
+
+    int documentId = documents.add(document);
+
+    std::cout << "Inserted document ID: "
+        << documentId << '\n';
+
+    auto userDocuments = documents.findByUserId(id);
+
+    for (const auto& item : userDocuments)
+    {
+        std::cout
+            << item.id << " | "
+            << item.documentName << " | "
+            << item.status << " | "
+            << item.pages << " pages\n";
+    }
+
+    bool statusUpdated = documents.updateStatus(documentId, "printing");
+
+    std::cout << "Status updated: "
+        << std::boolalpha << statusUpdated << '\n';
+
+    auto afterStatus = documents.findById(documentId);
+
+    if (afterStatus)
+    {
+        std::cout << "New status: "
+            << afterStatus->status << '\n';
+    }
+
+    bool documentRemoved = documents.remove(documentId);
+
+    std::cout << "Document removed: "
+        << std::boolalpha << documentRemoved << '\n';
+
+    // 6. DELETE
+    std::cout << "\nDELETE\n";
+
+    bool removed = repository.remove(id);
+
+    std::cout << "Removed: "
+        << std::boolalpha << removed << '\n';
+
+    // 7. Перевірка після видалення
+    auto afterDelete = repository.findById(id);
+
+    std::cout << "Record exists after deletion: "
+        << std::boolalpha
+        << afterDelete.has_value()
+        << '\n';
+}
+
+void runQueryDemo()
+{
+    using namespace sqlite_orm;
+
+    auto storage = createStorage("print_queue_queries.db");
+
+    storage.sync_schema();
+
+    std::cout << "\n=== ORM QUERY DEMONSTRATION ===\n";
+
+    // 1. Фільтрація за кількістю сторінок
+    std::cout << "\n1. Documents with more than 10 pages:\n";
+
+    auto largeDocuments = storage.get_all<PrintDocument>(
+        where(c(&PrintDocument::pages) > 10)
+    );
+
+    for (const auto& item : largeDocuments)
+    {
+        std::cout
+            << item.id << " | "
+            << item.documentName << " | "
+            << item.pages << '\n';
+    }
+
+    // 2. Сортування користувачів за іменем
+    std::cout << "\n2. Users sorted by name:\n";
+
+    auto sortedUsers = storage.get_all<User>(
+        order_by(&User::name).asc()
+    );
+
+    for (const auto& item : sortedUsers)
+    {
+        std::cout
+            << item.id << " | "
+            << item.name << " | "
+            << item.department << '\n';
+    }
+
+    // 3. Три найбільші документи
+    std::cout << "\n3. Top 3 documents by pages:\n";
+
+    auto biggestDocuments = storage.get_all<PrintDocument>(
+        order_by(&PrintDocument::pages).desc(),
+        limit(3)
+    );
+
+    for (const auto& record : biggestDocuments)
+    {
+        std::cout
+            << record.id << " | "
+            << record.documentName << " | "
+            << record.pages << '\n';
+    }
+
+    // 4. Поєднання фільтрації та сортування: черга друку
+    std::cout << "\n4. Queued documents sorted by priority:\n";
+
+    auto queue = storage.get_all<PrintDocument>(
+        where(c(&PrintDocument::status) == "queued"),
+        order_by(&PrintDocument::priority).desc()
+    );
+
+    for (const auto& item : queue)
+    {
+        std::cout
+            << "Priority " << item.priority << " | "
+            << item.documentName << '\n';
+    }
+}
+
+void runAggregateDemo()
+{
+    using namespace sqlite_orm;
+
+    auto storage = createStorage("print_queue_queries.db");
+
+    storage.sync_schema();
+
+    std::cout << "\n=== AGGREGATE QUERY DEMONSTRATION ===\n";
+
+    // 1. Кількість документів
+    auto documentCount = storage.count<PrintDocument>();
+
+    std::cout << "\n1. Print document count: "
+        << documentCount << '\n';
+
+    // 2. Загальна кількість сторінок
+    auto totalPages = storage.sum(&PrintDocument::pages);
+
+    std::cout << "\n2. Total pages: "
+        << totalPages.value_or(0) << '\n';
+
+    // 3. Середня кількість сторінок
+    auto averagePages = storage.avg(&PrintDocument::pages);
+
+    std::cout << "\n3. Average pages per document: "
+        << averagePages << '\n';
+
+    // 4. Групування за користувачем
+    std::cout << "\n4. Pages by user:\n";
+
+    auto pagesByUser = storage.select(
+        columns(
+            &PrintDocument::userId,
+            sum(&PrintDocument::pages)
+        ),
+        group_by(&PrintDocument::userId)
+    );
+
+    for (const auto& [userId, pages] : pagesByUser)
+    {
+        std::cout
+            << "User ID: " << userId
+            << " | Total pages: " << pages.value_or(0)
+            << '\n';
+    }
+}
+
+void runJoinDemo()
+{
+    using namespace sqlite_orm;
+
+    auto storage = createStorage("print_queue_queries.db");
+
+    storage.sync_schema();
+
+    std::cout << "\n=== JOIN QUERY DEMONSTRATION ===\n";
+
+    // 1. Об'єднання User і PrintDocument
+    std::cout << "\n1. Print documents with their owners:\n";
+
+    auto records = storage.select(
+        columns(
+            &User::name,
+            &PrintDocument::documentName,
+            &PrintDocument::pages,
+            &PrintDocument::status
+        ),
+        inner_join<PrintDocument>(
+            on(c(&User::id) == &PrintDocument::userId)
+        ),
+        order_by(&PrintDocument::id)
+    );
+
+    for (const auto& [name, document, pages, status] : records)
+    {
+        std::cout
+            << name << " | "
+            << document << " | "
+            << pages << " | "
+            << status << '\n';
+    }
+
+    // 2. Об'єднання таблиць із фільтрацією
+    std::cout << "\n2. Documents with more than 20 pages:\n";
+
+    auto bigRecords = storage.select(
+        columns(
+            &User::name,
+            &PrintDocument::documentName,
+            &PrintDocument::pages
+        ),
+        inner_join<PrintDocument>(
+            on(c(&User::id) == &PrintDocument::userId)
+        ),
+        where(c(&PrintDocument::pages) > 20),
+        order_by(&PrintDocument::pages).desc()
+    );
+
+    for (const auto& [name, document, pages] : bigRecords)
+    {
+        std::cout
+            << name << " | "
+            << document << " | "
+            << pages << '\n';
+    }
+}
+
 int main()
 {
-    // Щоб повторний запуск не накопичував записи 
+    // Щоб повторний запуск не накопичував записи (вимога 7 завдання)
     std::filesystem::remove("print_queue.db");
 
     sqlite3* db = nullptr;
@@ -408,6 +728,30 @@ int main()
     catch (const std::exception& ex)
     {
         std::cerr << "Relationship demo error: "
+            << ex.what() << '\n';
+    }
+
+    try
+    {
+        runRepositoryDemo();
+    }
+    catch (const std::exception& ex)
+    {
+        std::cerr << "Repository error: "
+            << ex.what() << '\n';
+    }
+
+    try
+    {
+        prepareTestData();
+
+        runQueryDemo();
+        runAggregateDemo();
+        runJoinDemo();
+    }
+    catch (const std::exception& ex)
+    {
+        std::cerr << "Query demonstration error: "
             << ex.what() << '\n';
     }
 

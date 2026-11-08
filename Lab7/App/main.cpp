@@ -32,7 +32,7 @@ namespace
         std::cout << '\n';
     }
 
-    // Обробники: від найбільш спеціалізованих до загальних
+    // Обробники: від найбільш спеціалізованих до загальних                                              
     template <class F>
     void scenario(const std::string& title, F action)
     {

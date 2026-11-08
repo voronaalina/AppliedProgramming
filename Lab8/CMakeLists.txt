@@ -11,7 +11,10 @@ find_package(unofficial-sqlite3 CONFIG REQUIRED)
 
 add_executable(Lab8
     src/main.cpp
- "include/User.h" "include/Database.h" "include/PrintDocument.h" "include/IUserRepository.h" "include/SQLiteUserRepository.h" "include/PrintDocumentDataAccess.h" "src/SQLiteUserRepository.cpp" "src/PrintDocumentDataAccess.cpp")
+    src/SQLiteUserRepository.cpp
+    src/PrintDocumentDataAccess.cpp
+    src/TestData.cpp
+)
 
 target_include_directories(Lab8
     PRIVATE
