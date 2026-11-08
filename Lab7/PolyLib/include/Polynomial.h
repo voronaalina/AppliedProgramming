@@ -22,7 +22,6 @@ public:
     explicit Polynomial(std::vector<double> coefficients);
     Polynomial(std::initializer_list<double> coefficients);
 
-    // спостерігачі 
     std::size_t size() const noexcept;
     std::size_t degree() const noexcept;
     const std::vector<double>& coefficients() const noexcept;
