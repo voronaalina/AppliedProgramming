@@ -7,8 +7,6 @@
 #include "PrintDocument.h"
 #include "Database.h"
 
-// Окремий компонент доступу до даних залежної сутності PrintDocument.
-// Додатковий абстрактний інтерфейс для нього не створюється.
 class PrintDocumentDataAccess
 {
 public:

@@ -10,8 +10,6 @@ void prepareTestData()
 {
     const std::string databaseFile = "print_queue_queries.db";
 
-    // Видаляємо лише окрему демонстраційну БД.
-    // Файл print_queue.db залишається без змін.
     std::filesystem::remove(databaseFile);
 
     auto storage = createStorage(databaseFile);
