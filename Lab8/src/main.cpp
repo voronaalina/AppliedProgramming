@@ -234,7 +234,6 @@ void runRelationshipDemo()
     std::cout << "User ID: "
         << userId << '\n';
 
-    // Перший документ
     PrintDocument d1{
         0,
         userId,
@@ -244,7 +243,6 @@ void runRelationshipDemo()
         3
     };
 
-    // Другий документ
     PrintDocument d2{
         0,
         userId,
@@ -311,12 +309,10 @@ void runRepositoryDemo()
 
     IUserRepository& repository = sqliteRepository;
 
-    // Окремий компонент для залежної сутності PrintDocument
     PrintDocumentDataAccess documents("print_queue.db");
 
     std::cout << "\nRepository demonstration\n";
 
-    // 1. CREATE
     User user{
         0,
         "Sherlock Holmes",
@@ -329,7 +325,6 @@ void runRepositoryDemo()
     std::cout << "\nCREATE\n";
     std::cout << "Inserted user ID: " << id << '\n';
 
-    // 2. READ
     std::cout << "\nREAD\n";
 
     auto found = repository.findById(id);
@@ -342,7 +337,6 @@ void runRepositoryDemo()
         std::cout << "Department: " << found->department << '\n';
     }
 
-    // 3. UPDATE
     std::cout << "\nUPDATE\n";
 
     if (found)
@@ -363,7 +357,6 @@ void runRepositoryDemo()
         }
     }
 
-    // 4. READ ALL
     std::cout << "\nREAD ALL\n";
 
     auto allUsers = repository.findAll();
@@ -377,7 +370,7 @@ void runRepositoryDemo()
             << item.department << '\n';
     }
 
-    // 5. Документи користувача (окремий компонент)
+    // Документи користувача 
     std::cout << "\nPRINT DOCUMENTS\n";
 
     PrintDocument document{
@@ -423,7 +416,7 @@ void runRepositoryDemo()
     std::cout << "Document removed: "
         << std::boolalpha << documentRemoved << '\n';
 
-    // 6. DELETE
+
     std::cout << "\nDELETE\n";
 
     bool removed = repository.remove(id);
@@ -431,7 +424,7 @@ void runRepositoryDemo()
     std::cout << "Removed: "
         << std::boolalpha << removed << '\n';
 
-    // 7. Перевірка після видалення
+    // Перевірка після видалення
     auto afterDelete = repository.findById(id);
 
     std::cout << "Record exists after deletion: "
@@ -450,7 +443,7 @@ void runQueryDemo()
 
     std::cout << "\n=== ORM QUERY DEMONSTRATION ===\n";
 
-    // 1. Фільтрація за кількістю сторінок
+    // Фільтрація 
     std::cout << "\n1. Documents with more than 10 pages:\n";
 
     auto largeDocuments = storage.get_all<PrintDocument>(
@@ -465,7 +458,7 @@ void runQueryDemo()
             << item.pages << '\n';
     }
 
-    // 2. Сортування користувачів за іменем
+    // Сортування
     std::cout << "\n2. Users sorted by name:\n";
 
     auto sortedUsers = storage.get_all<User>(
@@ -480,7 +473,7 @@ void runQueryDemo()
             << item.department << '\n';
     }
 
-    // 3. Три найбільші документи
+    // Три найбільші документи
     std::cout << "\n3. Top 3 documents by pages:\n";
 
     auto biggestDocuments = storage.get_all<PrintDocument>(
@@ -496,7 +489,7 @@ void runQueryDemo()
             << record.pages << '\n';
     }
 
-    // 4. Поєднання фільтрації та сортування: черга друку
+    // черга друку
     std::cout << "\n4. Queued documents sorted by priority:\n";
 
     auto queue = storage.get_all<PrintDocument>(
@@ -522,25 +515,21 @@ void runAggregateDemo()
 
     std::cout << "\n=== AGGREGATE QUERY DEMONSTRATION ===\n";
 
-    // 1. Кількість документів
     auto documentCount = storage.count<PrintDocument>();
 
     std::cout << "\n1. Print document count: "
         << documentCount << '\n';
 
-    // 2. Загальна кількість сторінок
     auto totalPages = storage.sum(&PrintDocument::pages);
 
     std::cout << "\n2. Total pages: "
         << (totalPages ? *totalPages : 0) << '\n';
 
-    // 3. Середня кількість сторінок
     auto averagePages = storage.avg(&PrintDocument::pages);
 
     std::cout << "\n3. Average pages per document: "
         << averagePages << '\n';
 
-    // 4. Групування за користувачем
     std::cout << "\n4. Pages by user:\n";
 
     auto pagesByUser = storage.select(
@@ -570,7 +559,7 @@ void runJoinDemo()
 
     std::cout << "\n=== JOIN QUERY DEMONSTRATION ===\n";
 
-    // 1. Об'єднання User і PrintDocument
+    // Об'єднання User і PrintDocument
     std::cout << "\n1. Print documents with their owners:\n";
 
     auto records = storage.select(
@@ -595,7 +584,7 @@ void runJoinDemo()
             << status << '\n';
     }
 
-    // 2. Об'єднання таблиць із фільтрацією
+    // Об'єднання таблиць із фільтрацією
     std::cout << "\n2. Documents with more than 20 pages:\n";
 
     auto bigRecords = storage.select(
@@ -677,7 +666,7 @@ void runTransactionDemo()
             std::cout << "\nRecords inserted inside transaction\n";
             std::cout << "User ID: " << userId << '\n';
 
-            return true; // COMMIT
+            return true; 
         });
 
     std::cout << "\nTransaction committed: "
@@ -725,7 +714,6 @@ void runRollbackDemo()
     {
         storage.transaction([&]()
             {
-                // Перша операція - коректна
                 User user{
                     0,
                     "Dmytro Kovalchuk",
@@ -738,7 +726,7 @@ void runRollbackDemo()
                 std::cout << "\nUser inserted, ID: "
                     << userId << '\n';
 
-                // Друга операція - навмисно некоректна
+                // навмисно некоректна операція
                 PrintDocument document{
                     0,
                     -1,
@@ -849,7 +837,6 @@ void runWithoutTransactionDemo()
 
 int main()
 {
-    // Щоб повторний запуск не накопичував записи (вимога 7 завдання)
     std::filesystem::remove("print_queue.db");
 
     sqlite3* db = nullptr;
