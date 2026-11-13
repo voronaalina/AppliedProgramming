@@ -321,7 +321,6 @@ void runRepositoryDemo()
         0,
         "Sherlock Holmes",
         "bs221b@example.com",
-
         "Finance"
     };
 
@@ -533,7 +532,7 @@ void runAggregateDemo()
     auto totalPages = storage.sum(&PrintDocument::pages);
 
     std::cout << "\n2. Total pages: "
-        << totalPages.value_or(0) << '\n';
+        << (totalPages ? *totalPages : 0) << '\n';
 
     // 3. Середня кількість сторінок
     auto averagePages = storage.avg(&PrintDocument::pages);
@@ -556,7 +555,7 @@ void runAggregateDemo()
     {
         std::cout
             << "User ID: " << userId
-            << " | Total pages: " << pages.value_or(0)
+            << " | Total pages: " << (pages ? *pages : 0)
             << '\n';
     }
 }
@@ -619,6 +618,233 @@ void runJoinDemo()
             << document << " | "
             << pages << '\n';
     }
+}
+
+void runTransactionDemo()
+{
+    auto storage = createStorage("print_queue_queries.db");
+
+    storage.on_open = [](sqlite3* db)
+        {
+            if (sqlite3_exec(
+                db,
+                "PRAGMA foreign_keys = ON;",
+                nullptr,
+                nullptr,
+                nullptr
+            ) != SQLITE_OK)
+            {
+                throw std::runtime_error(
+                    "Cannot enable foreign keys"
+                );
+            }
+        };
+
+    storage.sync_schema();
+
+    std::cout << "\n=== TRANSACTION DEMONSTRATION ===\n";
+
+    auto usersBefore = storage.count<User>();
+    auto documentsBefore = storage.count<PrintDocument>();
+
+    std::cout << "\nBefore transaction:\n";
+    std::cout << "Users: " << usersBefore << '\n';
+    std::cout << "PrintDocuments: " << documentsBefore << '\n';
+
+    // Успішна транзакція: реєстрація користувача разом з першим документом
+    bool committed = storage.transaction([&]()
+        {
+            User user{
+                0,
+                "Sofia Lysenko",
+                "sofia.lysenko@example.com",
+                "Design"
+            };
+
+            int userId = storage.insert(user);
+
+            PrintDocument document{
+                0,
+                userId,
+                "Welcome guide.pdf",
+                "queued",
+                12,
+                3
+            };
+
+            storage.insert(document);
+
+            std::cout << "\nRecords inserted inside transaction\n";
+            std::cout << "User ID: " << userId << '\n';
+
+            return true; // COMMIT
+        });
+
+    std::cout << "\nTransaction committed: "
+        << std::boolalpha << committed << '\n';
+
+    std::cout << "\nAfter transaction:\n";
+    std::cout << "Users: "
+        << storage.count<User>() << '\n';
+    std::cout << "PrintDocuments: "
+        << storage.count<PrintDocument>() << '\n';
+}
+
+void runRollbackDemo()
+{
+    auto storage = createStorage("print_queue_queries.db");
+
+    storage.on_open = [](sqlite3* db)
+        {
+            if (sqlite3_exec(
+                db,
+                "PRAGMA foreign_keys = ON;",
+                nullptr,
+                nullptr,
+                nullptr
+            ) != SQLITE_OK)
+            {
+                throw std::runtime_error(
+                    "Cannot enable foreign keys"
+                );
+            }
+        };
+
+    storage.sync_schema();
+
+    std::cout << "\n=== ROLLBACK DEMONSTRATION ===\n";
+
+    auto usersBefore = storage.count<User>();
+    auto documentsBefore = storage.count<PrintDocument>();
+
+    std::cout << "\nBefore transaction:\n";
+    std::cout << "Users: " << usersBefore << '\n';
+    std::cout << "PrintDocuments: " << documentsBefore << '\n';
+
+    try
+    {
+        storage.transaction([&]()
+            {
+                // Перша операція - коректна
+                User user{
+                    0,
+                    "Dmytro Kovalchuk",
+                    "dmytro.kovalchuk@example.com",
+                    "Finance"
+                };
+
+                int userId = storage.insert(user);
+
+                std::cout << "\nUser inserted, ID: "
+                    << userId << '\n';
+
+                // Друга операція - навмисно некоректна
+                PrintDocument document{
+                    0,
+                    -1,
+                    "Budget plan.pdf",
+                    "queued",
+                    20,
+                    4
+                };
+
+                storage.insert(document);
+
+                return true;
+            });
+    }
+    catch (const std::exception& ex)
+    {
+        std::cout << "\nTransaction failed: "
+            << ex.what() << '\n';
+
+        std::cout << "Changes rolled back\n";
+    }
+
+    std::cout << "\nAfter transaction:\n";
+    std::cout << "Users: "
+        << storage.count<User>() << '\n';
+    std::cout << "PrintDocuments: "
+        << storage.count<PrintDocument>() << '\n';
+
+    // Перевірка відсутності нового користувача
+    using namespace sqlite_orm;
+
+    auto foundUsers = storage.get_all<User>(
+        where(c(&User::name) == "Dmytro Kovalchuk")
+    );
+
+    std::cout << "\nUser \"Dmytro Kovalchuk\" exists: "
+        << std::boolalpha
+        << !foundUsers.empty() << '\n';
+}
+
+void runWithoutTransactionDemo()
+{
+    const std::string databaseFile =
+        "print_queue_no_transaction.db";
+
+    std::filesystem::remove(databaseFile);
+
+    auto storage = createStorage(databaseFile);
+
+    storage.on_open = [](sqlite3* db)
+        {
+            if (sqlite3_exec(
+                db,
+                "PRAGMA foreign_keys = ON;",
+                nullptr,
+                nullptr,
+                nullptr
+            ) != SQLITE_OK)
+            {
+                throw std::runtime_error(
+                    "Cannot enable foreign keys"
+                );
+            }
+        };
+
+    storage.sync_schema();
+
+    std::cout << "\n=== WITHOUT TRANSACTION ===\n";
+
+    try
+    {
+        User user{
+            0,
+            "Dmytro Kovalchuk",
+            "dmytro.kovalchuk@example.com",
+            "Finance"
+        };
+
+        int userId = storage.insert(user);
+
+        std::cout << "\nUser inserted, ID: "
+            << userId << '\n';
+
+        // Навмисно некоректний зовнішній ключ
+        PrintDocument document{
+            0,
+            -1,
+            "Budget plan.pdf",
+            "queued",
+            20,
+            4
+        };
+
+        storage.insert(document);
+    }
+    catch (const std::exception& ex)
+    {
+        std::cout << "\nOperation failed: "
+            << ex.what() << '\n';
+    }
+
+    std::cout << "\nAfter operations:\n";
+    std::cout << "Users: "
+        << storage.count<User>() << '\n';
+    std::cout << "PrintDocuments: "
+        << storage.count<PrintDocument>() << '\n';
 }
 
 int main()
@@ -748,10 +974,14 @@ int main()
         runQueryDemo();
         runAggregateDemo();
         runJoinDemo();
+
+        runTransactionDemo();
+        runRollbackDemo();
+        runWithoutTransactionDemo();
     }
     catch (const std::exception& ex)
     {
-        std::cerr << "Query demonstration error: "
+        std::cerr << "Application error: "
             << ex.what() << '\n';
     }
 

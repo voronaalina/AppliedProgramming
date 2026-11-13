@@ -97,8 +97,11 @@ void Polynomial::swap(Polynomial& other) noexcept
 // Гарантія: strong.
 Polynomial& Polynomial::multiplyAssign(const Polynomial& other)
 {
+    //const Polynomial copy = *this;
+    //coeffs_.assign(coeffs_.size(), 0.0);          // ПОМИЛКА
+    //Polynomial result = copy.multiply(other);
 
-    Polynomial result = multiply(other);
+    Polynomial result = multiply(other);  // при помилці
 
     swap(result);
     return *this;

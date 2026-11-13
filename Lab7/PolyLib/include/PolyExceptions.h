@@ -49,7 +49,7 @@ public:
     const std::string& operation() const noexcept { return operation_; }
 };
 
-// Недопустиме значення параметра операції (x, константа інтегрування).
+// Недопустиме значення параметра операції .
 class InvalidParameterException : public PolynomialException
 {
 private:
