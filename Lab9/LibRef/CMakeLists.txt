@@ -1,1 +1,1 @@
-add_executable(LibRef main.cpp)
+add_executable(LibRef main.cpp "Book.h" "Interfaces.h" "Library.h" "Implementations.h")
