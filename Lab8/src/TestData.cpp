@@ -34,11 +34,11 @@ void prepareTestData()
     storage.sync_schema();
 
     std::vector<User> userList = {
-        {0, "Olena Kovalenko", "olena.kovalenko@example.com", "Accounting"},
-        {0, "Andrii Melnyk",   "andrii.melnyk@example.com",   "IT"},
-        {0, "Iryna Bondar",    "iryna.bondar@example.com",    "Marketing"},
-        {0, "Taras Shevchuk",  "taras.shevchuk@example.com",  "HR"},
-        {0, "Maria Tkachenko", "maria.tkachenko@example.com", "Legal"}
+        {0, "Olena Kovalenko", "olenakovalenko@gmail.com", "Accounting"},
+        {0, "Andrew Garfield",   "spiderman2012@gmail.com",   "IT"},
+        {0, "Iryna Bondar",    "irynabondar@gmail.com",    "Marketing"},
+        {0, "Taras Shevchuk",  "tarasshevchuk@gmail.com",  "HR"},
+        {0, "Maria Tkachenko", "maritkachenko@gmail.com", "Law"}
     };
 
     std::vector<int> userIds;
