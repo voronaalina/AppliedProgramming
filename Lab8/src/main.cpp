@@ -716,8 +716,8 @@ void runRollbackDemo()
             {
                 User user{
                     0,
-                    "Dmytro Kovalchuk",
-                    "dmytro.kovalchuk@example.com",
+                    "Mary Shelly",
+                    "frankenstein@gmail.com",
                     "Finance"
                 };
 
@@ -759,10 +759,10 @@ void runRollbackDemo()
     using namespace sqlite_orm;
 
     auto foundUsers = storage.get_all<User>(
-        where(c(&User::name) == "Dmytro Kovalchuk")
+        where(c(&User::name) == "Mary Shelly")
     );
 
-    std::cout << "\nUser \"Dmytro Kovalchuk\" exists: "
+    std::cout << "\nUser \"Mary Shelly\" exists: "
         << std::boolalpha
         << !foundUsers.empty() << '\n';
 }
