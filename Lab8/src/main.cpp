@@ -800,8 +800,8 @@ void runWithoutTransactionDemo()
     {
         User user{
             0,
-            "Dmytro Kovalchuk",
-            "dmytro.kovalchuk@example.com",
+            "Mary Shelly",
+            "frankenstein@gmail.com",
             "Finance"
         };
 
