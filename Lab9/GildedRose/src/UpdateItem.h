@@ -31,7 +31,6 @@ public:
     virtual ~ItemUpdater() = default;
 };
 
-//  -1 на день, після терміну продажу -2
 class NormalItemUpdater : public ItemUpdater {
 public:
     void update(Item& item) const override {

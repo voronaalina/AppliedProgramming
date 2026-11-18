@@ -13,9 +13,15 @@ public:
     explicit IceCreamUpdater(Temperature temperature) : temperature_(temperature) {}
 
     void update(Item& item) const override {
-        const int decay = (temperature_ == Temperature::High)
-            ? kIceCreamHighDecay
-            : kIceCreamNormalDecay;
+        int decay;
+
+        if (temperature_ == Temperature::High) {
+            decay = kIceCreamHighDecay;
+        }
+        else {
+            decay = kIceCreamNormalDecay;
+        }
+
         for (int i = 0; i < decay; ++i) {
             decreaseQuality(item);
         }
