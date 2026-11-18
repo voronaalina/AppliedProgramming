@@ -1,12 +1,13 @@
 #include <gtest/gtest.h>
 #include "GildedRose.h"
-
+#include "IcecreamUpdater.h"
 namespace {
 
     const std::string kBrie = "Aged Brie";
-    const std::string kSulfuras = "Sulfuras, Hand of Ragnaros";
+    const std::string kSulfurasItem = "Sulfuras, Hand of Ragnaros";
     const std::string kBackstage = "Backstage passes to a TAFKAL80ETC concert";
     const std::string kNormal = "Normal item";
+    const std::string kIceCreamItem = "Ice Cream";
 
     Item updateOnce(const std::string& name, int sellIn, int quality) {
         std::vector<Item> items;
@@ -16,6 +17,11 @@ namespace {
         return app.items[0];
     }
 
+    Item updateIceCream(int sellIn, int quality, Temperature temperature) {
+        Item item(kIceCreamItem, sellIn, quality);
+        IceCreamUpdater(temperature).update(item);
+        return item;
+    }
 }  
 
 // Звичайні товари 
@@ -54,7 +60,7 @@ TEST(AgedBrie, QualityNeverExceedsFifty) {
 //Sulfuras
 
 TEST(Sulfuras, QualityAndSellInNeverChange) {
-    Item item = updateOnce(kSulfuras, 5, 80);
+    Item item = updateOnce(kSulfurasItem, 5, 80);
     EXPECT_EQ(80, item.quality);
     EXPECT_EQ(5, item.sellIn);
 }
@@ -81,4 +87,33 @@ TEST(BackstagePasses, QualityDropsToZeroAfterConcert) {
 TEST(BackstagePasses, QualityNeverExceedsFifty) {
     EXPECT_EQ(50, updateOnce(kBackstage, 10, 49).quality);
     EXPECT_EQ(50, updateOnce(kBackstage, 5, 49).quality);
+}
+
+//icecream
+
+TEST(IceCream, QualityDecreasesByOneAtNormalTemperature) {
+    Item item = updateIceCream(5, 10, Temperature::Normal);
+    EXPECT_EQ(9, item.quality);
+    EXPECT_EQ(4, item.sellIn);
+}
+
+TEST(IceCream, QualityDecreasesByThreeAtHighTemperature) {
+    Item item = updateIceCream(5, 10, Temperature::High);
+    EXPECT_EQ(7, item.quality);
+    EXPECT_EQ(4, item.sellIn);
+}
+
+TEST(IceCream, QualityBecomesZeroAfterExpiryAtAnyTemperature) {
+    EXPECT_EQ(0, updateIceCream(0, 10, Temperature::Normal).quality);
+    EXPECT_EQ(0, updateIceCream(0, 10, Temperature::High).quality);
+}
+
+TEST(IceCream, QualityIsNeverNegative) {
+    EXPECT_EQ(0, updateIceCream(5, 2, Temperature::High).quality);
+    EXPECT_EQ(0, updateIceCream(5, 0, Temperature::Normal).quality);
+}
+
+TEST(GildedRose, IceCreamIsRecognizedByName) {
+    EXPECT_EQ(9, updateOnce(kIceCreamItem, 5, 10).quality);
+    EXPECT_EQ(0, updateOnce(kIceCreamItem, 0, 10).quality);
 }

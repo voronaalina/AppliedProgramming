@@ -1,6 +1,6 @@
 #include "GildedRose.h"
 #include "UpdateItem.h"
-
+#include "IcecreamUpdater.h"
 #include <map>
 
 using namespace std;
@@ -12,11 +12,13 @@ namespace {
         static const SulfurasUpdater sulfuras{};
         static const BackstagePassUpdater backstagePass{};
         static const NormalItemUpdater normal{};
+        static const IceCreamUpdater iceCream{ Temperature::Normal };
 
         static const map<string, const ItemUpdater*> updaters = {
             {kAgedBrie, &agedBrie},
             {kSulfuras, &sulfuras},
             {kBackstagePasses, &backstagePass},
+            {kIceCream, &iceCream},
         };
 
         auto found = updaters.find(name);
